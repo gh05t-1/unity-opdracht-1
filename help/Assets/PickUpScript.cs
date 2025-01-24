@@ -9,7 +9,7 @@ public class PickUpScript : MonoBehaviour
     public GameObject player;
     public Transform holdPos;
     public float throwForce = 500f; //force at which the object is thrown at
-    public float pickUpRange = 0.5f; //how far the player can pickup the object from
+    public float pickUpRange = 0.7f; //how far the player can pickup the object from
     private float rotationSensitivity = 1f; //how fast/slow the object is rotated in relation to mouse movement
     private GameObject heldObj; //object which we pick up
     private Rigidbody heldObjRb; //rigidbody of object we pick up
@@ -22,24 +22,29 @@ public class PickUpScript : MonoBehaviour
     //MouseLookScript mouseLookScript;
     void Start()
     {
+        Cursor.lockState = CursorLockMode.Locked;
         LayerNumber = LayerMask.NameToLayer("holdLayer"); //if your holdLayer is named differently make sure to change this ""
 
         //mouseLookScript = player.GetComponent<MouseLookScript>();
     }
     void Update()
-    {   if (Input.GetKeyDown(KeyCode.E)) //change E to whichever key you want to press to pick up
+    {
+        Ray ray = new Ray(transform.position, transform.TransformDirection(Vector3.forward));
+        Debug.DrawLine(ray.origin, (ray.origin + ray.direction), Color.red);
+        if (Input.GetKeyDown(KeyCode.E)) //change E to whichever key you want to press to pick up
         {
             Debug.Log("E pressed");
 
 
             if (heldObj == null) //if currently not holding anything
-            { Ray ray = new Ray(transform.position, transform.TransformDirection(Vector3.forward));
-                Debug.DrawLine(ray.origin, (ray.origin+ray.direction), Color.red);
+            { 
+                
       
                 //perform raycast to check if player is looking at object within pickuprange
                 RaycastHit hit;
-              
-                if (Physics.Raycast(ray, out hit, pickUpRange))
+                
+                //if (Physics.Raycast(ray, out hit, pickUpRange))
+                if(Physics.SphereCast(ray, 0.3f, out hit, pickUpRange))
                 {
                     Debug.Log("Raycast" + hit.collider.name);
                     //make sure pickup tag is attached
@@ -136,6 +141,7 @@ public class PickUpScript : MonoBehaviour
         heldObj.layer = 0;
         heldObjRb.isKinematic = false;
         heldObj.transform.parent = null;
+        heldObjRb.constraints = RigidbodyConstraints.None;
         heldObjRb.AddForce(transform.forward * throwForce);
         heldObj = null;
     }
